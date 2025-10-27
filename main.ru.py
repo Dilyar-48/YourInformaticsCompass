@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QButtonGroup, QLineEdit, 
 from PyQt6.QtGui import QFont, QColor
 
 
-class Pseudonym(QMainWindow):
+class RegistrationForm(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setFixedSize(350, 370)
@@ -57,6 +57,6 @@ class Pseudonym(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = Pseudonym()
+    ex = RegistrationForm()
     ex.show()
     sys.exit(app.exec())
