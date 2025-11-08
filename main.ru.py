@@ -3,32 +3,84 @@ import csv
 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QButtonGroup, QLineEdit, QWidget, QPushButton, QLabel
 from PyQt6.QtGui import QFont, QColor
-from texts_for_theory import first_teory
+from texts_for_theory import all_teories
+
+NUMBER_OF_TEORY = 0
+X, Y = 546, 274
+
 
 class MaterialSelection(QMainWindow):
-    pass
-class TasksInApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setFixedSize(828, 492)
+        self.move(X, Y)
+        self.setWindowTitle("Your Informatics Compass")
+        self.choose_one_of_numbers = QLabel(self)
+        self.choose_one_of_numbers.resize(828, 141)
+        self.choose_one_of_numbers.setText(
+            """<html><head/><body><p align="center"><span style=" font-size:20pt; font-weight:600;">Выберите одно из заданий</span></p></body></html>""")
+        self.regfont = QFont('Arial', 20)
+        x, y = 34, 141
+        count_num_theoryes = 1
+        for btnrow in range(2):
+            for btncol in range(5):
+                self.buttonchoice = QPushButton(self)
+                self.buttonchoice.resize(140, 140)
+                self.buttonchoice.move(x, y)
+                self.buttonchoice.setFont(self.regfont)
+                self.buttonchoice.setText(f"{count_num_theoryes}")
+                count_num_theoryes += 1
+                self.buttonchoice.clicked.connect(self.go_to_the_theory)
+                x += 151
+            y += 151
+            x = 34
+
+    def go_to_the_theory(self):
+        global NUMBER_OF_TEORY, X, Y
+        Y = self.geometry().y() - 31
+        X = self.geometry().x()
+        NUMBER_OF_TEORY = int(self.sender().text()) - 1
+        self.hide()
+        self.windowmain = TeoryInApp()
+        self.windowmain.show()
+
+
+class TeoryInApp(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setFixedSize(828, 492)
+        self.move(X, Y)
         self.setWindowTitle("Your Informatics Compass")
         self.setStyleSheet("""
                 QMainWindow {
                     background-color: #a1d0d4;
                 }
         """)
-        self.regfont = QFont('Arial', 16)
+        self.regfont = QFont('Arial', 12)
         self.appname = QLabel(self)
-        self.appname.resize(771, 391)
-        self.appname.move(30, 61)
+        self.appname.resize(780, 391)
+        self.appname.move(25, 61)
         self.appname.setFont(self.regfont)
-        self.appname.setText(first_teory)
+        self.appname.setText(all_teories[NUMBER_OF_TEORY])
+        self.returnbtn = QPushButton(self)
+        self.returnbtn.move(10, 10)
+        self.returnbtn.resize(40, 40)
+        self.returnbtn.clicked.connect(self.return_back)
+
+    def return_back(self):
+        global X, Y
+        Y = self.geometry().y() - 31
+        X = self.geometry().x()
+        self.hide()
+        self.windowmain = MaterialSelection()
+        self.windowmain.show()
 
 
 class StartApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setFixedSize(828, 492)
+        self.move(X, Y)
         self.setWindowTitle("Your Informatics Compass")
         self.setStyleSheet("""
                 QMainWindow {
@@ -39,7 +91,8 @@ class StartApp(QMainWindow):
         self.appname.resize(800, 71)
         self.appname.move(20, 20)
         self.regfont = QFont('Arial', 20)
-        self.appname.setText("""<html><head/><body><p align="center"><span style=" font-size:20pt; font-weight:600;">Your Informatic Compass</span></p></body></html>""")
+        self.appname.setText(
+            """<html><head/><body><p align="center"><span style=" font-size:20pt; font-weight:600;">Your Informatic Compass</span></p></body></html>""")
         self.theorybtn = QPushButton(self)
         self.theorybtn.setFont(self.regfont)
         self.theorybtn.setStyleSheet("background-color: #91f8ff; border-width: 1000%")
@@ -54,13 +107,13 @@ class StartApp(QMainWindow):
         self.tasksbtn.move(10, 232)
         self.theorybtn.clicked.connect(self.gototheory)
 
-
     def gototheory(self):
+        global X, Y
+        Y = self.geometry().y() - 31
+        X = self.geometry().x()
         self.hide()
-        self.windowmain = TasksInApp()
+        self.windowmain = MaterialSelection()
         self.windowmain.show()
-
-
 
 
 class RegistrationForm(QMainWindow):
@@ -101,7 +154,6 @@ class RegistrationForm(QMainWindow):
         self.regfont = QFont('Arial', 20)
         self.hapiningnowlabel.setFont(self.regfont)
         self.hapiningnowlabel.setText("Регистрация")
-
 
     def checktoentrance(self):
         self.hide()
