@@ -234,9 +234,15 @@ class RegistrationForm(QMainWindow):
         global COUNT_RESOLVED_CARDS
         connection = sqlite3.connect('forregistrationform.db')
         cursor = connection.cursor()
-        names = cursor.execute("SELECT username FROM Acaunts").fetchall()
+        names = [name[0] for name in cursor.execute("SELECT username FROM Acaunts").fetchall()]
         if len(self.toname.text()) > 20:
             self.nameerror.setText("Имя должно содержать не более 20 символов.")
+            self.todoublepassworderror.setText("")
+            self.topassworderror.setText("")
+            self.togendererror.setText("")
+            return
+        elif self.toname.text() in names:
+            self.nameerror.setText("Такое имя уже существует")
             self.todoublepassworderror.setText("")
             self.topassworderror.setText("")
             self.togendererror.setText("")
