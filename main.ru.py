@@ -2,8 +2,8 @@ import sys
 import csv
 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QButtonGroup, QLineEdit, QWidget, QPushButton, QLabel, \
-    QRadioButton
-from PyQt6.QtGui import QFont, QColor, QIcon, QPixmap
+    QRadioButton, QMessageBox, QProgressBar
+from PyQt6.QtGui import QFont, QColor, QIcon, QPixmap, QImage, QPainter, QBrush, QPen
 from PyQt6 import uic
 from PyQt6.QtCore import QSize, Qt
 from texts_for_theory import all_teories
@@ -14,33 +14,137 @@ import hashlib
 
 NUMBER_OF_TEORY = 0
 X, Y = 546, 274
+AVATARPROFILE = "avatarprofile.png"
 COUNT_RESOLVED_CARDS = 0
+NAME = ""
+GENDER = ""
+ID = ""
+BACGROUNDD_COLOR_NOW = 0
+FILE_QSS_TEME = "Fibrary_light.qss"
+APPLICATION_HEADER_COLOR = "light"
 
-if not os.path.isfile('forregistrationform.db'):
-    connection = sqlite3.connect('forregistrationform.db')
-    cursor = connection.cursor()
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS Acaunts (
-    id INTEGER PRIMARY KEY,
-    username TEXT NOT NULL,
-    password TEXT NOT NULL,
-    gender TEXT NOT NULL,
-    count_card TEXT NOT NULL)
-    ''')
-    connection.commit()
-    connection.close()
+
+class UserProfile(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        global AVATARPROFILE
+        self.setGeometry(X, Y, 828, 492)
+        self.move(X, Y)
+        self.setWindowTitle("YourInformaticsCompassProfile")
+        with open(FILE_QSS_TEME, "r") as f:
+            qss = f.read()
+        connection = sqlite3.connect('forregistrationform.db')
+        cursor = connection.cursor()
+        self.setStyleSheet(qss)
+        self.returnbtn = QPushButton(self)
+        self.returnbtn.move(20, 15)
+        self.returnbtn.resize(120, 60)
+        self.textfontbig = QFont('Arial', 20)
+        self.textfontsmall = QFont('Arial', 12)
+        self.returnbtn.setFont(self.textfontsmall)
+        self.returnbtn.setText("← Назад")
+        self.returnbtn.clicked.connect(self.return_back)
+        self.yourprofile = QLabel(self)
+        self.yourprofile.resize(414, 141)
+        self.yourprofile.move(207, 25)
+        self.yourprofile.setFont(self.textfontbig)
+        self.yourprofile.setText("Ваш профиль:")
+        self.yourprofile.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        self.curr_image = QLabel(self)
+        self.curr_image.resize(240, 240)
+        self.curr_image.move(20, 100)
+        self.profileimage = QImage(AVATARPROFILE)
+        self.profileimage = self.profileimage.scaled(QSize(240, 240))
+        self.pixmapprofileimage = QPixmap.fromImage(self.profileimage)
+        self.profileimage = QImage(AVATARPROFILE)
+        self.profileimage = self.profileimage.scaled(QSize(240, 240))
+        self.curr_image.setPixmap(self.pixmapprofileimage)
+        self.original_pixmap = QPixmap(self.profileimage)
+        self.circular_pixmap = QPixmap(QSize(240, 240))
+        self.circular_pixmap.fill(Qt.GlobalColor.transparent)
+        self.painter = QPainter(self.circular_pixmap)
+        self.painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        self.painter.setBrush(QBrush(self.original_pixmap))
+        self.pen = QPen()
+        self.pen.setWidth(1)
+        self.pen.setColor(QColor('#fff'))
+        self.painter.setPen(self.pen)
+        self.painter.drawEllipse(0, 0, self.original_pixmap.width(), self.original_pixmap.height())
+        self.painter.end()
+        self.curr_image.setPixmap(self.circular_pixmap)
+        self.name_label = QLabel(self)
+        self.name_label.move(300, 100)
+        self.name_label.setFont(self.textfontbig)
+        self.name_label.resize(500, 60)
+        self.name_label.setText("Ваше имя: " + NAME)
+        self.gender_label = QLabel(self)
+        self.gender_label.move(300, 160)
+        self.gender_label.setFont(self.textfontbig)
+        self.gender_label.resize(500, 60)
+        self.gender_label.setText("Ваш пол:   " + GENDER)
+        self.id_label = QLabel(self)
+        self.id_label.move(300, 220)
+        self.id_label.setFont(self.textfontbig)
+        self.id_label.resize(500, 60)
+        self.id_label.setText("Ваш id:      " + ID)
+        self.progress_bar = QProgressBar(self)
+        self.progress_bar.setRange(0, 30)
+        self.progress_bar.setValue(COUNT_RESOLVED_CARDS)
+        self.progress_bar.move(20, 350)
+        self.progress_bar.resize(245, 16)
+        self.progress_bar.setStyleSheet("""QProgressBar {
+                                                border-radius: 7px;
+	                                            border: 2px solid #ffc800;
+	                                            color: #000;
+	                                            font-weight: bold;
+	                                            text-align: center;
+                                            }
+                                            QProgressBar::chunk {
+                                                background-color: #ffc800;
+                                                border-radius: 6px;
+	                                            border: 2px solid #ffc800;
+                                            }""")
+        self.progress_bar.setFormat("%p")
+        self.reversefonecolor = QPushButton(self)
+        self.reversefonecolor.move(300, 290)
+        self.reversefonecolor.resize(230, 35)
+        reversteme = "светлую" if BACGROUNDD_COLOR_NOW == 1 else "тёмную"
+        self.reversefonecolor.setFont(self.textfontsmall)
+        self.reversefonecolor.setText("Сменить тему на " + reversteme)
+        self.reversefonecolor.clicked.connect(self.temechange)
+
+    def temechange(self):
+        global FILE_QSS_TEME, FILE_QSS_TEME_REGESTRATION, BACGROUNDD_COLOR_NOW, APPLICATION_HEADER_COLOR
+        FILE_QSS_TEME = "Fibrary_light.qss" if FILE_QSS_TEME == "Fibrary.qss" else "Fibrary.qss"
+        BACGROUNDD_COLOR_NOW = abs(BACGROUNDD_COLOR_NOW - 1)
+        reversteme = "светлую" if BACGROUNDD_COLOR_NOW == 1 else "тёмную"
+        self.reversefonecolor.setText("Сменить тему на " + reversteme)
+        APPLICATION_HEADER_COLOR = "light" if APPLICATION_HEADER_COLOR == "dark" else "dark"
+        self.hide()
+        self.windowmain = UserProfile()
+        pywinstyles.apply_style(self.windowmain, APPLICATION_HEADER_COLOR)
+        self.windowmain.show()
+
+    def return_back(self):
+        global X, Y
+        Y = self.geometry().y() - 31
+        X = self.geometry().x()
+        self.hide()
+        self.windowmain = StartApp()
+        pywinstyles.apply_style(self.windowmain, APPLICATION_HEADER_COLOR)
+        self.windowmain.show()
 
 
 class MaterialSelection(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setFixedSize(828, 492)
+        self.setGeometry(X, Y, 828, 492)
         self.move(X, Y)
         self.setWindowTitle("Your Informatics Compass")
         self.choose_one_of_numbers = QLabel(self)
         self.choose_one_of_numbers.resize(414, 141)
         self.choose_one_of_numbers.move(207, 25)
-        with open("Fibrary.qss", "r") as f:
+        with open(FILE_QSS_TEME, "r") as f:
             qss = f.read()
         self.setStyleSheet(qss)
         self.choose_one_of_numbers.setText(
@@ -76,7 +180,7 @@ class MaterialSelection(QMainWindow):
         NUMBER_OF_TEORY = int(self.sender().text()) - 1
         self.hide()
         self.windowmain = TeoryInApp()
-        pywinstyles.apply_style(self.windowmain, "dark")
+        pywinstyles.apply_style(self.windowmain, APPLICATION_HEADER_COLOR)
         self.windowmain.show()
 
     def return_back(self):
@@ -85,17 +189,17 @@ class MaterialSelection(QMainWindow):
         X = self.geometry().x()
         self.hide()
         self.windowmain = StartApp()
-        pywinstyles.apply_style(self.windowmain, "dark")
+        pywinstyles.apply_style(self.windowmain, APPLICATION_HEADER_COLOR)
         self.windowmain.show()
 
 
 class TeoryInApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setFixedSize(828, 492)
+        self.setGeometry(X, Y, 828, 492)
         self.move(X, Y)
         self.setWindowTitle("Your Informatics Compass")
-        with open("Fibrary.qss", "r") as f:
+        with open(FILE_QSS_TEME, "r") as f:
             qss = f.read()
         self.setStyleSheet(qss)
         self.regfont = QFont('Arial', 12)
@@ -103,6 +207,7 @@ class TeoryInApp(QMainWindow):
         self.appname.resize(780, 391)
         self.appname.move(25, 69)
         self.appname.setFont(self.regfont)
+        self.appname.adjustSize()
         self.appname.setText(all_teories[NUMBER_OF_TEORY])
         self.returnbtn = QPushButton(self)
         self.returnbtn.move(281, 25)
@@ -119,17 +224,17 @@ class TeoryInApp(QMainWindow):
         X = self.geometry().x()
         self.hide()
         self.windowmain = MaterialSelection()
-        pywinstyles.apply_style(self.windowmain, "dark")
+        pywinstyles.apply_style(self.windowmain, APPLICATION_HEADER_COLOR)
         self.windowmain.show()
 
 
 class StartApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setFixedSize(828, 492)
+        self.setGeometry(X, Y, 828, 492)
         self.move(X, Y)
         self.setWindowTitle("Your Informatics Compass")
-        with open("for_main_menu.qss", "r") as f:
+        with open(FILE_QSS_TEME, "r") as f:
             qss = f.read()
         self.setStyleSheet(qss)
         self.appname = QLabel(self)
@@ -141,14 +246,23 @@ class StartApp(QMainWindow):
         self.theorybtn = QPushButton(self)
         self.theorybtn.setFont(self.regfont)
         self.theorybtn.setText("Теория")
-        self.theorybtn.resize(623, 121)
-        self.theorybtn.move(93, 110)
+        self.theorybtn.resize(503, 100)
+        self.theorybtn.move(153, 100)
         self.tasksbtn = QPushButton(self)
         self.tasksbtn.setFont(self.regfont)
         self.tasksbtn.setText("Задания")
-        self.tasksbtn.resize(623, 121)
-        self.tasksbtn.move(93, 243)
+        self.tasksbtn.resize(503, 100)
+        self.tasksbtn.move(153, 215)
+        self.acauntsbtn = QPushButton(self)
+        self.acauntsbtn.setFont(self.regfont)
+        self.acauntsbtn.setText("Профиль")
+        self.acauntsbtn.resize(503, 100)
+        self.acauntsbtn.move(153, 330)
+        self.acauntsbtn.setStyleSheet("""border-radius: 45px;""")
+        self.theorybtn.setStyleSheet("""border-radius: 45px;""")
+        self.tasksbtn.setStyleSheet("""border-radius: 45px;""")
         self.theorybtn.clicked.connect(self.gototheory)
+        self.acauntsbtn.clicked.connect(self.gotoacount)
 
     def gototheory(self):
         global X, Y
@@ -156,18 +270,28 @@ class StartApp(QMainWindow):
         X = self.geometry().x()
         self.hide()
         self.windowmain = MaterialSelection()
-        pywinstyles.apply_style(self.windowmain, "dark")
+        pywinstyles.apply_style(self.windowmain, APPLICATION_HEADER_COLOR)
+        self.windowmain.show()
+
+    def gotoacount(self):
+        global X, Y
+        Y = self.geometry().y() - 31
+        X = self.geometry().x()
+        self.hide()
+        self.windowmain = UserProfile()
+        pywinstyles.apply_style(self.windowmain, APPLICATION_HEADER_COLOR)
         self.windowmain.show()
 
 
 class RegistrationForm(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setFixedSize(350, 370)
+        self.setGeometry(783, 335, 350, 370)
         self.setWindowTitle("Your Informatics Compass Register")
-        with open("Fibrary.qss", "r") as f:
+        with open(FILE_QSS_TEME, "r") as f:
             qss = f.read()
         self.setStyleSheet(qss)
+        self.textfontsmall = QFont('Arial', 12)
         self.toname = QLineEdit(self)
         self.toname.resize(250, 30)
         self.toname.move(50, 70)
@@ -186,9 +310,11 @@ class RegistrationForm(QMainWindow):
         self.topassword.resize(250, 30)
         self.topassword.move(50, 118)
         self.topassword.setPlaceholderText("Пароль")
+        self.topassword.setEchoMode(QLineEdit.EchoMode.Password)
         self.todoublepassword = QLineEdit(self)
         self.todoublepassword.resize(250, 30)
         self.todoublepassword.move(50, 166)
+        self.todoublepassword.setEchoMode(QLineEdit.EchoMode.Password)
         self.todoublepassword.setPlaceholderText("Повторите пароль")
         self.entrance = QPushButton(self)
         self.entrance.resize(134, 30)
@@ -223,15 +349,22 @@ class RegistrationForm(QMainWindow):
         self.hapiningnowlabel.setFont(self.regfont)
         self.hapiningnowlabel.setText("Регистрация")
         self.gotoentryformbtn = QPushButton(self)
-        self.gotoentryformbtn.setStyleSheet(
-            "background-color: #0f0f0f; border: 0px solid #d10000; border-radius: 0px; padding: 5px; color: 'gray'")
+        stylereturnbtn = "background-color: #0f0f0f; border: 0px solid #000; border-radius: 0px; color: 'gray'" if BACGROUNDD_COLOR_NOW == 1 else "background-color: #f0ffff; border: 0px solid #000; border-radius: 0px; color: 'gray'"
+        self.gotoentryformbtn.setStyleSheet(stylereturnbtn)
         self.gotoentryformbtn.resize(134, 30)
         self.gotoentryformbtn.move(108, 310)
         self.gotoentryformbtn.setText("Войти")
         self.gotoentryformbtn.clicked.connect(self.entry)
+        self.reversefonecolor = QPushButton(self)
+        self.reversefonecolor.move(310, 5)
+        self.reversefonecolor.resize(35, 35)
+        reversteme = "☀️" if BACGROUNDD_COLOR_NOW == 1 else "🌙"
+        self.reversefonecolor.setFont(self.textfontsmall)
+        self.reversefonecolor.setText(reversteme)
+        self.reversefonecolor.clicked.connect(self.temechange)
 
     def checktoentrance(self):
-        global COUNT_RESOLVED_CARDS
+        global COUNT_RESOLVED_CARDS, GENDER, NAME, ID
         connection = sqlite3.connect('forregistrationform.db')
         cursor = connection.cursor()
         names = [name[0] for name in cursor.execute("SELECT username FROM Acaunts").fetchall()]
@@ -287,27 +420,53 @@ class RegistrationForm(QMainWindow):
                 self.toname.text(), hashlib.md5(self.topassword.text().encode("utf-8")).hexdigest(), gendernow,
                 COUNT_RESOLVED_CARDS))
             connection.commit()
+            all_names_and_passwords = [element for coort in
+                                       cursor.execute(
+                                           "SELECT id, username, password, gender, count_card FROM Acaunts").fetchall()
+                                       for
+                                       element in
+                                       (str(coort[0]) + ' ' + coort[1] + ' ' + coort[2] + ' ' + coort[3] + ' ' +
+                                        coort[4]).split()]
+
             cursor.close()
+            COUNT_RESOLVED_CARDS = int(
+                all_names_and_passwords[all_names_and_passwords.index(self.toname.text()) + 3])
+            NAME = all_names_and_passwords[all_names_and_passwords.index(self.toname.text())]
+            GENDER = all_names_and_passwords[all_names_and_passwords.index(self.toname.text()) + 2]
+            ID = all_names_and_passwords[all_names_and_passwords.index(self.toname.text()) - 1]
             self.hide()
             self.windowmain = StartApp()
-            pywinstyles.apply_style(self.windowmain, "dark")
+            pywinstyles.apply_style(self.windowmain, APPLICATION_HEADER_COLOR)
             self.windowmain.show()
+
+    def temechange(self):
+        global FILE_QSS_TEME, FILE_QSS_TEME_REGESTRATION, BACGROUNDD_COLOR_NOW, APPLICATION_HEADER_COLOR
+        FILE_QSS_TEME = "Fibrary_light.qss" if FILE_QSS_TEME == "Fibrary.qss" else "Fibrary.qss"
+        BACGROUNDD_COLOR_NOW = abs(BACGROUNDD_COLOR_NOW - 1)
+        reversteme = "☀️" if BACGROUNDD_COLOR_NOW == 1 else "🌙"
+        self.reversefonecolor.setText(reversteme)
+        APPLICATION_HEADER_COLOR = "light" if APPLICATION_HEADER_COLOR == "dark" else "dark"
+        self.hide()
+        self.windowmain = RegistrationForm()
+        pywinstyles.apply_style(self.windowmain, APPLICATION_HEADER_COLOR)
+        self.windowmain.show()
 
     def entry(self):
         self.hide()
         self.windowmain = Entry_Form()
-        pywinstyles.apply_style(self.windowmain, "dark")
+        pywinstyles.apply_style(self.windowmain, APPLICATION_HEADER_COLOR)
         self.windowmain.show()
 
 
 class Entry_Form(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setFixedSize(350, 300)
+        self.setGeometry(783, 335, 350, 300)
         self.setWindowTitle("Your Informatics Compass Register")
-        with open("Fibrary.qss", "r") as f:
+        with open(FILE_QSS_TEME, "r") as f:
             qss = f.read()
         self.setStyleSheet(qss)
+        self.textfontsmall = QFont('Arial', 12)
         self.toname = QLineEdit(self)
         self.toname.resize(250, 30)
         self.toname.move(50, 70)
@@ -315,6 +474,7 @@ class Entry_Form(QMainWindow):
         self.topassword = QLineEdit(self)
         self.topassword.resize(250, 30)
         self.topassword.move(50, 118)
+        self.topassword.setEchoMode(QLineEdit.EchoMode.Password)
         self.topassword.setPlaceholderText("Пароль")
         self.entrance = QPushButton(self)
         self.entrance.resize(134, 30)
@@ -339,23 +499,32 @@ class Entry_Form(QMainWindow):
         self.hapiningnowlabel.setFont(self.regfont)
         self.hapiningnowlabel.setText("Вход")
         self.gotoregistrationformbtn = QPushButton(self)
-        self.gotoregistrationformbtn.setStyleSheet(
-            "background-color: #0f0f0f; border: 0px solid #d10000; border-radius: 0px; padding: 5px; color: 'gray'")
+        stylereturnbtn = "background-color: #0f0f0f; border: 0px solid #000; border-radius: 0px; color: 'gray'" if BACGROUNDD_COLOR_NOW == 1 else "background-color: #f0ffff; border: 0px solid #000; border-radius: 0px; color: 'gray'"
+        self.gotoregistrationformbtn.setStyleSheet(stylereturnbtn)
         self.gotoregistrationformbtn.resize(134, 30)
         self.gotoregistrationformbtn.move(108, 230)
         self.gotoregistrationformbtn.setText("Зарегистрироваться")
         self.gotoregistrationformbtn.clicked.connect(self.registration)
+        self.reversefonecolor = QPushButton(self)
+        self.reversefonecolor.move(310, 5)
+        self.reversefonecolor.resize(35, 35)
+        reversteme = "☀️" if BACGROUNDD_COLOR_NOW == 1 else "🌙"
+        self.reversefonecolor.setFont(self.textfontsmall)
+        self.reversefonecolor.setText(reversteme)
+        self.reversefonecolor.clicked.connect(self.temechange)
 
     def checktoentrance(self):
-        global COUNT_RESOLVED_CARDS
+        global COUNT_RESOLVED_CARDS, GENDER, NAME, ID
         connection = sqlite3.connect('forregistrationform.db')
         cursor = connection.cursor()
         all_names_and_passwords = [element for coort in
                                    cursor.execute(
-                                       "SELECT username, password, gender, count_card FROM Acaunts").fetchall() for
-                                   element in (coort[0] + ' ' + coort[1] + ' ' + coort[2] + ' ' + coort[3]).split()]
+                                       "SELECT id, username, password, gender, count_card FROM Acaunts").fetchall() for
+                                   element in (str(coort[0]) + ' ' + coort[1] + ' ' + coort[2] + ' ' + coort[3] + ' ' +
+                                               coort[4]).split()]
+
         cursor.close()
-        if self.toname.text() not in all_names_and_passwords[::4]:
+        if self.toname.text() not in all_names_and_passwords[1::5]:
             self.nameerror.setText("Не существует пользователя с таким именем.")
             self.topassworderror.setText("")
             return
@@ -367,19 +536,36 @@ class Entry_Form(QMainWindow):
         else:
             self.hide()
             self.windowmain = StartApp()
-            pywinstyles.apply_style(self.windowmain, "dark")
+            pywinstyles.apply_style(self.windowmain, APPLICATION_HEADER_COLOR)
+            COUNT_RESOLVED_CARDS = int(
+                all_names_and_passwords[all_names_and_passwords.index(self.toname.text()) + 3])
+            NAME = all_names_and_passwords[all_names_and_passwords.index(self.toname.text())]
+            GENDER = all_names_and_passwords[all_names_and_passwords.index(self.toname.text()) + 2]
+            ID = all_names_and_passwords[all_names_and_passwords.index(self.toname.text()) - 1]
             self.windowmain.show()
 
     def registration(self):
         self.hide()
         self.windowmain = RegistrationForm()
-        pywinstyles.apply_style(self.windowmain, "dark")
+        pywinstyles.apply_style(self.windowmain, APPLICATION_HEADER_COLOR)
+        self.windowmain.show()
+
+    def temechange(self):
+        global FILE_QSS_TEME, FILE_QSS_TEME_REGESTRATION, BACGROUNDD_COLOR_NOW, APPLICATION_HEADER_COLOR
+        FILE_QSS_TEME = "Fibrary_light.qss" if FILE_QSS_TEME == "Fibrary.qss" else "Fibrary.qss"
+        BACGROUNDD_COLOR_NOW = abs(BACGROUNDD_COLOR_NOW - 1)
+        reversteme = "☀️" if BACGROUNDD_COLOR_NOW == 1 else "🌙"
+        self.reversefonecolor.setText(reversteme)
+        APPLICATION_HEADER_COLOR = "light" if APPLICATION_HEADER_COLOR == "dark" else "dark"
+        self.hide()
+        self.windowmain = Entry_Form()
+        pywinstyles.apply_style(self.windowmain, APPLICATION_HEADER_COLOR)
         self.windowmain.show()
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = RegistrationForm()
-    pywinstyles.apply_style(ex, "dark")
+    pywinstyles.apply_style(ex, APPLICATION_HEADER_COLOR)
     ex.show()
     sys.exit(app.exec())

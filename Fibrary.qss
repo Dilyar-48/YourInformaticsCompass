@@ -187,3 +187,12 @@ QRadioButton::indicator:checked {
 
 }
 
+QMessageBox {
+    background-color: #0f0f0f
+    color: #aaa
+}
+
+QProgressBar::chunk {
+    background-color: #ffc800;
+}
+

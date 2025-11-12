@@ -23,9 +23,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 /*-----QMainWindow-----*/
 QMainWindow
 {
-	background-color: #0f0f0f;
+	background-color: #f0ffff;
 	color: #fff;
-	border-color: #000000;
+	border-color: #fff;
 
 }
 
@@ -34,9 +34,9 @@ QMainWindow
 QLabel
 {
 	background-color: transparent;
-	color: #fff;
+	color: #000;
 	font-weight: bold;
-	border-color: #000000;
+	border-color: #fff;
 
 }
 
@@ -44,11 +44,11 @@ QLabel
 /*-----QPushButton-----*/
 QPushButton
 {
-	background-color: #d10000;
-	color: #fff;
+	background-color: #75ffff;
+	color: #000;
 	font-weight: bold;
-	border: 3px solid #d10000;
-	border-radius: 55px;
+	border: 3px solid #75ffff;
+	border-radius: 15px;
 	padding: 5px;
 
 }
@@ -56,16 +56,16 @@ QPushButton
 
 QPushButton::hover
 {
-	background-color: #ad0000;
-	color: #fff;
+	background-color: #63ebeb;
+	color: #000;
 
 }
 
 
 QPushButton::pressed
 {
-	background-color: #e00000;
-	color: #fff;
+	background-color: #55d9d9;
+	color: #000;
 
 }
 
@@ -103,8 +103,8 @@ QToolButton::pressed
 
 /*-----QLineEdit-----*/
 QLineEdit{
-	background-color: #4d4d4d;
-	color: #fff;
+	background-color: #5de3f5;
+	color: #000;
 	font-weight: bold;
 	border-style: solid;
 	border-radius: 5px;
@@ -164,3 +164,31 @@ QCheckBox::indicator:disabled
     border: 1px solid #656565;
 
 }
+
+
+QRadioButton {
+    color: #000;
+}
+
+
+QRadioButton::indicator {
+	background-color: #5de3f5;
+	color: #000;
+	width: 10px;
+	height: 10px;
+	border-radius: 7px;
+	border: 2px solid #5de3f5;
+
+}
+
+
+QRadioButton::indicator:checked {
+    background-color: #17a8fc;
+
+}
+
+
+QProgressBar::chunk {
+    background-color: #ffc800;
+}
+
