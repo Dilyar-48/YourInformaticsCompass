@@ -20,7 +20,7 @@ NAME = ""
 GENDER = ""
 ID = ""
 BACGROUNDD_COLOR_NOW = 0
-FILE_QSS_TEME = "Fibrary_light.qss"
+FILE_QSS_TEME = "dist/Fibrary_light.qss"
 APPLICATION_HEADER_COLOR = "light"
 
 
@@ -33,7 +33,7 @@ class UserProfile(QMainWindow):
         self.setWindowTitle("YourInformaticsCompassProfile")
         with open(FILE_QSS_TEME, "r") as f:
             qss = f.read()
-        connection = sqlite3.connect('forregistrationform.db')
+        connection = sqlite3.connect('dist/forregistrationform.db')
         cursor = connection.cursor()
         self.setStyleSheet(qss)
         self.returnbtn = QPushButton(self)
@@ -207,7 +207,6 @@ class TeoryInApp(QMainWindow):
         self.appname.resize(780, 391)
         self.appname.move(25, 69)
         self.appname.setFont(self.regfont)
-        self.appname.adjustSize()
         self.appname.setText(all_teories[NUMBER_OF_TEORY])
         self.returnbtn = QPushButton(self)
         self.returnbtn.move(281, 25)
@@ -365,7 +364,7 @@ class RegistrationForm(QMainWindow):
 
     def checktoentrance(self):
         global COUNT_RESOLVED_CARDS, GENDER, NAME, ID
-        connection = sqlite3.connect('forregistrationform.db')
+        connection = sqlite3.connect('dist/forregistrationform.db')
         cursor = connection.cursor()
         names = [name[0] for name in cursor.execute("SELECT username FROM Acaunts").fetchall()]
         if len(self.toname.text()) > 20:
@@ -425,12 +424,10 @@ class RegistrationForm(QMainWindow):
                                            "SELECT id, username, password, gender, count_card FROM Acaunts").fetchall()
                                        for
                                        element in
-                                       (str(coort[0]) + ' ' + coort[1] + ' ' + coort[2] + ' ' + coort[3] + ' ' +
-                                        coort[4]).split()]
+                                       [str(coort[0]), coort[1], coort[2], coort[3], coort[4]]]
 
             cursor.close()
-            COUNT_RESOLVED_CARDS = int(
-                all_names_and_passwords[all_names_and_passwords.index(self.toname.text()) + 3])
+            print(all_names_and_passwords, all_names_and_passwords.index(self.toname.text()))
             NAME = all_names_and_passwords[all_names_and_passwords.index(self.toname.text())]
             GENDER = all_names_and_passwords[all_names_and_passwords.index(self.toname.text()) + 2]
             ID = all_names_and_passwords[all_names_and_passwords.index(self.toname.text()) - 1]
@@ -515,7 +512,7 @@ class Entry_Form(QMainWindow):
 
     def checktoentrance(self):
         global COUNT_RESOLVED_CARDS, GENDER, NAME, ID
-        connection = sqlite3.connect('forregistrationform.db')
+        connection = sqlite3.connect('dist/forregistrationform.db')
         cursor = connection.cursor()
         all_names_and_passwords = [element for coort in
                                    cursor.execute(
